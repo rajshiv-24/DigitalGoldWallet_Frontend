@@ -1,0 +1,321 @@
+<div class="dashboard-shell">
+
+  <!-- ══ Navbar ════════════════════════════════════════════ -->
+  <nav class="top-navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar-left">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M14 6L17.5 11H22L18 15.5L19.5 21L14 18L8.5 21L10 15.5L6 11H10.5L14 6Z"
+                  fill="currentColor" opacity="0.9"/>
+          </svg>
+        </div>
+        <span class="brand-name">Digital Gold Wallet</span>
+      </div>
+    </div>
+    <div class="navbar-right">
+      <a routerLink="/dashboard" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Back to dashboard
+      </a>
+    </div>
+  </nav>
+
+  <!-- ══ Page body ═════════════════════════════════════════ -->
+  <div class="page-body">
+    <div class="page-inner">
+
+      <!-- Page heading -->
+      <div class="page-header">
+        <div class="page-header-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.75"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="page-title">Wallet</h1>
+          <p class="page-sub">Add funds to your Digital Gold Wallet</p>
+        </div>
+      </div>
+
+      <!-- ══ Content grid ══════════════════════════════════ -->
+      <div class="wallet-grid">
+
+        <!-- LEFT: Balance card + last payment receipt -->
+        <div class="wallet-left">
+
+          <!-- Balance card skeleton -->
+          <div class="balance-card skeleton-balance" *ngIf="isLoadingUser" aria-busy="true">
+            <div class="sk-line sk-label"></div>
+            <div class="sk-line sk-value"></div>
+            <div class="sk-line sk-sub"></div>
+          </div>
+
+          <!-- Balance card live -->
+          <div class="balance-card" *ngIf="!isLoadingUser && userProfile" role="region" aria-label="Current wallet balance">
+            <div class="balance-card-header">
+              <span class="balance-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.75"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+                  <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+                  <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+                </svg>
+              </span>
+              <span class="balance-label">Current balance</span>
+            </div>
+            <div class="balance-amount">
+              ₹{{ userProfile.balance | number:'1.2-2' }}
+            </div>
+            <div class="balance-user">
+              <span class="balance-user-name">{{ userProfile.name }}</span>
+              <span class="balance-user-email">{{ userProfile.email }}</span>
+            </div>
+          </div>
+
+          <!-- Balance load error fallback -->
+          <div class="balance-card balance-error-card"
+               *ngIf="!isLoadingUser && !userProfile && errorMessage">
+            <p class="balance-error-text">Balance unavailable</p>
+          </div>
+
+          <!-- Last payment receipt -->
+          <div class="receipt-card" *ngIf="lastPayment" role="region" aria-label="Last transaction receipt">
+            <div class="receipt-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Transaction receipt
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-key">Payment ID</span>
+              <span class="receipt-val">#{{ lastPayment.paymentId }}</span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-key">Amount</span>
+              <span class="receipt-val receipt-amount">
+                +₹{{ lastPayment.amount | number:'1.2-2' }}
+              </span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-key">Method</span>
+              <span class="receipt-val">{{ formatMethod(lastPayment.paymentMethod) }}</span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-key">Type</span>
+              <span class="receipt-val">{{ lastPayment.transactionType }}</span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-key">Status</span>
+              <span class="receipt-val">
+                <span class="status-badge"
+                      [ngClass]="getStatusBadgeClass(lastPayment.paymentStatus)">
+                  {{ lastPayment.paymentStatus }}
+                </span>
+              </span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-key">Date</span>
+              <span class="receipt-val">
+                {{ lastPayment.createdAt | date:'dd MMM yyyy, hh:mm a' }}
+              </span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Top-up form -->
+        <div class="wallet-right">
+          <div class="form-card">
+
+            <h2 class="form-card-title">Add funds</h2>
+            <p class="form-card-sub">
+              Funds are credited instantly after payment confirmation.
+            </p>
+
+            <!-- Success alert -->
+            <div
+              *ngIf="successMessage"
+              class="alert alert-success alert-dismissible d-flex align-items-start gap-2"
+              role="alert"
+              aria-live="polite"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                   viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                   class="flex-shrink-0 mt-1" aria-hidden="true">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+              <span>{{ successMessage }}</span>
+              <button
+                type="button"
+                class="btn-close ms-auto"
+                aria-label="Dismiss"
+                (click)="dismissSuccess()"
+              ></button>
+            </div>
+
+            <!-- Error alert -->
+            <div
+              *ngIf="errorMessage"
+              class="alert alert-danger alert-dismissible d-flex align-items-start gap-2"
+              role="alert"
+              aria-live="polite"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                   viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                   class="flex-shrink-0 mt-1" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8"  x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span>{{ errorMessage }}</span>
+              <button
+                type="button"
+                class="btn-close ms-auto"
+                aria-label="Dismiss"
+                (click)="dismissError()"
+              ></button>
+            </div>
+
+            <!-- Top-up form -->
+            <form
+              [formGroup]="topUpForm"
+              (ngSubmit)="onSubmit()"
+              novalidate
+              autocomplete="off"
+            >
+
+              <!-- Amount -->
+              <div class="form-group mb-4">
+                <label for="amount" class="form-label">
+                  Amount (₹)
+                  <span class="required-star" aria-hidden="true">*</span>
+                </label>
+                <div class="input-wrapper">
+                  <span class="input-prefix" aria-hidden="true">₹</span>
+                  <input
+                    id="amount"
+                    type="number"
+                    formControlName="amount"
+                    class="form-control input-with-prefix"
+                    [class.is-invalid]="isAmountInvalid"
+                    [class.is-valid]="amount.valid && amount.touched"
+                    placeholder="0.00"
+                    min="0.01"
+                    step="0.01"
+                    aria-describedby="amountError"
+                    aria-required="true"
+                  />
+                </div>
+                <div id="amountError" class="invalid-feedback" *ngIf="isAmountInvalid">
+                  <span *ngIf="amount.errors?.['required']">
+                    Amount is required.
+                  </span>
+                  <span *ngIf="amount.errors?.['nonPositive'] && !amount.errors?.['required']">
+                    Amount must be greater than ₹0.
+                  </span>
+                </div>
+              </div>
+
+              <!-- Payment method -->
+              <div class="form-group mb-5">
+                <label for="paymentMethod" class="form-label">
+                  Payment method
+                  <span class="required-star" aria-hidden="true">*</span>
+                </label>
+                <div class="select-wrapper">
+                  <select
+                    id="paymentMethod"
+                    formControlName="paymentMethod"
+                    class="form-select"
+                    [class.is-invalid]="isPaymentMethodInvalid"
+                    [class.is-valid]="paymentMethod.valid && paymentMethod.touched"
+                    aria-describedby="methodError"
+                    aria-required="true"
+                  >
+                    <option value="" disabled selected>Select a payment method</option>
+                    <option
+                      *ngFor="let method of paymentMethods"
+                      [value]="method.value"
+                    >
+                      {{ method.label }}
+                    </option>
+                  </select>
+                  <span class="select-arrow" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </span>
+                </div>
+                <div id="methodError" class="invalid-feedback" *ngIf="isPaymentMethodInvalid">
+                  <span *ngIf="paymentMethod.errors?.['required']">
+                    Please select a payment method.
+                  </span>
+                </div>
+              </div>
+
+              <!-- Quick amount presets -->
+              <div class="preset-row" role="group" aria-label="Quick amount presets">
+                <button
+                  type="button"
+                  class="preset-btn"
+                  *ngFor="let preset of [500, 1000, 2000, 5000]"
+                  (click)="amount.setValue(preset); amount.markAsTouched()"
+                >
+                  ₹{{ preset | number }}
+                </button>
+              </div>
+
+              <!-- Submit -->
+              <button
+                type="submit"
+                class="btn-submit w-100"
+                [disabled]="topUpForm.invalid || isSubmitting"
+                aria-label="Add funds to wallet"
+              >
+                <span *ngIf="!isSubmitting">
+                  Add funds
+                </span>
+                <span
+                  *ngIf="isSubmitting"
+                  class="d-flex align-items-center justify-content-center gap-2"
+                >
+                  <span
+                    class="spinner-border spinner-border-sm"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                  Processing...
+                </span>
+              </button>
+
+              <p class="form-footnote">
+                Your user ID is taken automatically from your session.
+                You will never be asked to enter it manually.
+              </p>
+
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

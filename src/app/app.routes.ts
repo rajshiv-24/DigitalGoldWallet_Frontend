@@ -33,6 +33,13 @@ export const routes: Routes = [
       import('./dashboard/dashboard.component')
         .then(m => m.DashboardComponent)
   },
+  {
+  path: 'wallet',
+  canActivate: [authGuard],
+  loadComponent: () =>
+    import('./wallet/wallet.component')
+      .then(m => m.WalletComponent)
+},
   
   // ── Wildcard ──────────────────────────────────────────────
   {
