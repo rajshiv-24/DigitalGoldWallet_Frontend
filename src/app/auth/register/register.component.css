@@ -1,0 +1,272 @@
+/* ── Page shell ─────────────────────────────────────────── */
+.register-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f5ef;
+  padding: 1.5rem;
+}
+
+/* ── Card wrapper ───────────────────────────────────────── */
+.register-wrapper {
+  width: 100%;
+  max-width: 460px;
+}
+
+.register-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #ede8df;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 4px 24px rgba(180, 155, 100, 0.08);
+}
+
+/* ── Brand header ───────────────────────────────────────── */
+.brand-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.brand-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #c9a84c 0%, #e8c97a 100%);
+  border-radius: 14px;
+  color: #ffffff;
+  margin-bottom: 1rem;
+}
+
+.brand-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 0.25rem;
+  letter-spacing: -0.01em;
+}
+
+.brand-tagline {
+  font-size: 0.875rem;
+  color: #6b6b6b;
+  margin: 0;
+}
+
+/* ── Form labels ────────────────────────────────────────── */
+.form-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #3a3a3a;
+  margin-bottom: 0.375rem;
+}
+
+/* ── Input with leading icon ────────────────────────────── */
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a0a0a0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+}
+
+.input-with-icon {
+  padding-left: 2.625rem;
+}
+
+.input-with-toggle {
+  padding-right: 2.875rem;
+}
+
+/* ── Bootstrap form-control overrides ──────────────────── */
+.form-control {
+  border-radius: 10px;
+  border: 1.5px solid #e2ddd6;
+  background-color: #fdfcfa;
+  font-size: 0.9rem;
+  color: #1a1a1a;
+  height: 46px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.form-control::placeholder {
+  color: #b8b3a8;
+}
+
+.form-control:focus {
+  border-color: #c9a84c;
+  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15);
+  background-color: #ffffff;
+  outline: none;
+}
+
+.form-control.is-invalid {
+  border-color: #dc3545;
+  background-image: none;
+  box-shadow: none;
+}
+
+.form-control.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.12);
+}
+
+.form-control.is-valid {
+  border-color: #28a745;
+  background-image: none;
+}
+
+.form-control.is-valid:focus {
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.12);
+}
+
+/* ── Password toggle ────────────────────────────────────── */
+.password-toggle {
+  position: absolute;
+  right: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #a0a0a0;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s ease;
+  z-index: 2;
+}
+
+.password-toggle:hover {
+  color: #c9a84c;
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid #c9a84c;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Validation feedback ────────────────────────────────── */
+.invalid-feedback {
+  display: block;
+  font-size: 0.775rem;
+  color: #dc3545;
+  margin-top: 0.3rem;
+  padding-left: 0.125rem;
+}
+
+/* ── Password strength meter ────────────────────────────── */
+.strength-meter {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-top: 0.375rem;
+}
+
+.strength-track {
+  flex: 1;
+  height: 4px;
+  background: #e8e3da;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.strength-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  min-width: 38px;
+  text-align: right;
+}
+
+.strength-weak   { background-color: #dc3545; color: #dc3545; }
+.strength-fair   { background-color: #c9a84c; color: #a07828; }
+.strength-strong { background-color: #28a745; color: #1a6a2e; }
+
+/* ── Error alert ────────────────────────────────────────── */
+.alert-danger {
+  border-radius: 10px;
+  font-size: 0.875rem;
+  border: 1px solid #f5c2c7;
+  background-color: #fff5f5;
+  color: #842029;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Submit button ──────────────────────────────────────── */
+.submit-btn {
+  height: 48px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #c9a84c 0%, #d4b460 100%);
+  color: #ffffff;
+  letter-spacing: 0.01em;
+  transition: opacity 0.18s ease, transform 0.12s ease;
+  margin-top: 0.5rem;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b8963e 0%, #c9a84c 100%);
+  transform: translateY(-1px);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit-btn:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.submit-btn:focus-visible {
+  outline: 2px solid #c9a84c;
+  outline-offset: 3px;
+}
+
+/* ── Login prompt ───────────────────────────────────────── */
+.login-prompt {
+  text-align: center;
+  font-size: 0.8375rem;
+  color: #6b6b6b;
+  margin: 1.5rem 0 0;
+}
+
+.login-link {
+  color: #c9a84c;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.login-link:hover {
+  color: #a8872e;
+  text-decoration: underline;
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .register-card {
+    padding: 2rem 1.25rem;
+    border-radius: 12px;
+  }
+
+  .brand-name {
+    font-size: 1.1rem;
+  }
+}
