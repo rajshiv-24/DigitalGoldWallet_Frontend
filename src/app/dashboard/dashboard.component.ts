@@ -1,161 +1,163 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
-import { AuthService } from '../core/services/auth.services';
-import { AuthenticatedUser } from '../core/models/auth.models';
-
-interface WalletBalance {
-  totalValueInr: number;
-  availableValueInr: number;
-  lockedValueInr: number;
-}
-
-interface GoldHolding {
-  totalGrams: number;
-  availableGrams: number;
-  lockedGrams: number;
-  currentRatePerGram: number;
-}
-
-interface RecentTransaction {
-  id: number;
-  date: string;
-  type: 'BUY' | 'SELL' | 'CREDIT' | 'DEBIT';
-  description: string;
-  grams: number | null;
-  amountInr: number;
-  status: 'SUCCESS' | 'PENDING' | 'FAILED';
-}
+import { CommonModule }                 from '@angular/common';
+import { Router, RouterLink }           from '@angular/router';
+import { Subject, forkJoin, takeUntil } from 'rxjs';
+import { AuthService }                  from '../core/services/auth.services';
+import { DashboardService }             from '../core/services/dashboard.service';
+import {
+  UserResponse,
+  GoldHoldingTotal,
+  TransactionHistoryResponse
+} from '../core/models/dashboard.models';
 
 @Component({
-  selector: 'app-dashboard',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
+  selector:    'app-dashboard',
+  standalone:  true,
+  imports:     [CommonModule, RouterLink],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+  styleUrls:   ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit, OnDestroy {
 
-  currentUser: AuthenticatedUser | null = null;
+  // ── UI state ──────────────────────────────────────────────
   isSidebarOpen = false;
+  isLoading     = true;
+  errorMessage: string | null = null;
 
-  // ── Mock data — replace with API calls when backend is ready ──
+  // ── API data ──────────────────────────────────────────────
+  userProfile:    UserResponse                  | null = null;
+  goldHolding:    GoldHoldingTotal              | null = null;
+  transactions:   TransactionHistoryResponse[]        = [];
 
-  walletBalance: WalletBalance = {
-    totalValueInr: 124500.00,
-    availableValueInr: 98750.00,
-    lockedValueInr: 25750.00
-  };
-
-  goldHolding: GoldHolding = {
-    totalGrams: 18.450,
-    availableGrams: 14.200,
-    lockedGrams: 4.250,
-    currentRatePerGram: 6748.50
-  };
-
-  recentTransactions: RecentTransaction[] = [
-    {
-      id: 1001,
-      date: '2024-06-14',
-      type: 'BUY',
-      description: 'Gold purchase',
-      grams: 2.000,
-      amountInr: 13497.00,
-      status: 'SUCCESS'
-    },
-    {
-      id: 1002,
-      date: '2024-06-12',
-      type: 'CREDIT',
-      description: 'Wallet top-up',
-      grams: null,
-      amountInr: 25000.00,
-      status: 'SUCCESS'
-    },
-    {
-      id: 1003,
-      date: '2024-06-10',
-      type: 'SELL',
-      description: 'Gold sale',
-      grams: 1.500,
-      amountInr: 10122.75,
-      status: 'SUCCESS'
-    },
-    {
-      id: 1004,
-      date: '2024-06-08',
-      type: 'BUY',
-      description: 'Gold purchase',
-      grams: 0.500,
-      amountInr: 3374.25,
-      status: 'PENDING'
-    },
-    {
-      id: 1005,
-      date: '2024-06-05',
-      type: 'DEBIT',
-      description: 'Withdrawal',
-      grams: null,
-      amountInr: 10000.00,
-      status: 'FAILED'
-    }
-  ];
+  // ── Mock: gold rate remains hardcoded until
+  //         a price endpoint exists on the backend ──────────
+  readonly currentRatePerGram = 6748.50;
 
   private readonly destroy$ = new Subject<void>();
 
   constructor(
-    private readonly authService: AuthService,
-    private readonly router: Router
+    private readonly authService:      AuthService,
+    private readonly dashboardService: DashboardService,
+    private readonly router:           Router
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = this.authService.getAuthenticatedUser();
+    const session = this.authService.getAuthenticatedUser();
+
+    if (!session) {
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    this.loadDashboardData(session.userId);
   }
 
+  // ── Parallel API calls via forkJoin ───────────────────────
+  private loadDashboardData(userId: number): void {
+    this.isLoading    = true;
+    this.errorMessage = null;
+
+    forkJoin({
+      user:         this.dashboardService.getUserById(userId),
+      goldHolding:  this.dashboardService.getGoldHoldingTotal(userId),
+      transactions: this.dashboardService.getTransactionHistory(userId)
+    })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: ({ user, goldHolding, transactions }) => {
+        this.userProfile  = user;
+        this.goldHolding  = goldHolding;
+        this.transactions = transactions;
+        this.isLoading    = false;
+      },
+      error: (err) => {
+        this.errorMessage =
+          err?.error?.message ||
+          err?.message ||
+          'Failed to load dashboard data. Please try again.';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  // ── Derived display values ────────────────────────────────
+
+  /** Full name from live API, falls back to JWT session name */
+  get displayName(): string {
+    return this.userProfile?.name
+      ?? this.authService.getAuthenticatedUser()?.name
+      ?? 'User';
+  }
+
+  /** Wallet balance from UserResponseDTO.balance */
+  get walletBalance(): number {
+    return this.userProfile?.balance ?? 0;
+  }
+
+  /** Total gold grams from holdings endpoint */
+  get totalGoldGrams(): number {
+    return this.goldHolding?.totalQuantity ?? 0;
+  }
+
+  /** Portfolio value = totalQuantity × mock rate */
+  get portfolioValue(): number {
+    return this.totalGoldGrams * this.currentRatePerGram;
+  }
+
+  /** Two-letter initials from displayName */
   getUserInitials(): string {
-    const name = this.currentUser?.name ?? '';
-    return name
+    return this.displayName
       .split(' ')
       .map(part => part.charAt(0).toUpperCase())
       .slice(0, 2)
       .join('');
   }
 
-  toggleSidebar(): void {
-    this.isSidebarOpen = !this.isSidebarOpen;
+  // ── Sidebar helpers ───────────────────────────────────────
+  toggleSidebar(): void  { this.isSidebarOpen = !this.isSidebarOpen; }
+  closeSidebar():  void  { this.isSidebarOpen = false; }
+
+  logout(): void { this.authService.logout(); }
+
+  // ── Transaction table helpers ─────────────────────────────
+
+  /**
+   * Maps transactionStatus string → Bootstrap badge CSS class.
+   * Backend values are not yet confirmed beyond the field name;
+   * we normalise to uppercase for comparison.
+   */
+  getStatusBadgeClass(status: string): string {
+    switch (status?.toUpperCase()) {
+      case 'SUCCESS':   return 'badge-success';
+      case 'PENDING':   return 'badge-pending';
+      case 'FAILED':    return 'badge-failed';
+      default:          return 'badge-pending';
+    }
   }
 
-  closeSidebar(): void {
-    this.isSidebarOpen = false;
+  /**
+   * Maps transactionType string → pill CSS class.
+   * Backend values are not yet confirmed; normalise to uppercase.
+   */
+  getTypeClass(type: string): string {
+    switch (type?.toUpperCase()) {
+      case 'BUY':    return 'type-buy';
+      case 'SELL':   return 'type-sell';
+      case 'CREDIT': return 'type-credit';
+      case 'DEBIT':  return 'type-debit';
+      default:       return 'type-buy';
+    }
   }
 
-  logout(): void {
-    this.authService.logout();
+  /** Prefix sign for amount column */
+  getAmountSign(type: string): string {
+    const t = type?.toUpperCase();
+    return (t === 'BUY' || t === 'DEBIT') ? '−' : '+';
   }
 
-  getTransactionBadgeClass(status: RecentTransaction['status']): string {
-    const map: Record<RecentTransaction['status'], string> = {
-      SUCCESS: 'badge-success',
-      PENDING: 'badge-pending',
-      FAILED:  'badge-failed'
-    };
-    return map[status];
-  }
-
-  getTransactionTypeClass(type: RecentTransaction['type']): string {
-    const map: Record<RecentTransaction['type'], string> = {
-      BUY:    'type-buy',
-      SELL:   'type-sell',
-      CREDIT: 'type-credit',
-      DEBIT:  'type-debit'
-    };
-    return map[type];
-  }
-
-  getAmountSign(type: RecentTransaction['type']): string {
-    return (type === 'BUY' || type === 'DEBIT') ? '−' : '+';
+  /** Limit transactions table to most recent 5 rows */
+  get recentTransactions(): TransactionHistoryResponse[] {
+    return this.transactions.slice(0, 5);
   }
 
   ngOnDestroy(): void {
