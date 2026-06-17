@@ -40,7 +40,28 @@ export const routes: Routes = [
     import('./wallet/wallet.component')
       .then(m => m.WalletComponent)
 },
-  
+{
+  path: 'buy-gold',
+  canActivate: [authGuard],
+  loadComponent: () =>
+    import('./buy-gold/buy-gold.component')
+      .then(m => m.BuyGoldComponent)
+},
+{
+  path: 'sell-gold',
+  canActivate: [authGuard],
+  loadComponent: () =>
+    import('./sell-gold/sell-gold.component')
+      .then(m => m.SellGoldComponent)
+},
+
+  {
+  path: 'transactions',
+  canActivate: [authGuard],
+  loadComponent: () =>
+    import('./transactions/transactions.component')
+      .then(m => m.TransactionsComponent)
+},
   // ── Wildcard ──────────────────────────────────────────────
   {
     path: '**',

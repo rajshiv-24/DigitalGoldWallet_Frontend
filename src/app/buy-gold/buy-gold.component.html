@@ -1,0 +1,170 @@
+<div class="container py-4">
+
+  <!-- Header -->
+  <div class="d-flex align-items-center mb-4">
+    <button class="btn btn-outline-secondary btn-sm me-3" (click)="goToDashboard()">
+      ← Back
+    </button>
+    <h4 class="mb-0 fw-semibold">Buy Gold</h4>
+  </div>
+
+  <!-- Alerts -->
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible" role="alert">
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible" role="alert">
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Buy Gold Form -->
+    <div class="col-lg-7">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          <h6 class="card-title text-muted mb-4">Purchase Details</h6>
+
+          <form [formGroup]="buyGoldForm" (ngSubmit)="onSubmit()">
+
+            <!-- Branch Selection -->
+            <div class="mb-3">
+              <label class="form-label fw-medium">Select Branch</label>
+              <div *ngIf="isLoadingBranches" class="text-muted small">Loading branches...</div>
+              <select *ngIf="!isLoadingBranches"
+                      class="form-select"
+                      formControlName="branchId"
+                      [class.is-invalid]="buyGoldForm.get('branchId')?.invalid && buyGoldForm.get('branchId')?.touched">
+                <option [ngValue]="null" disabled>Select a branch</option>
+                <option *ngFor="let branch of branches" [value]="branch.branchId">
+                  {{ branch.vendor.vendorName }} — {{ branch.address.city }}
+                </option>
+              </select>
+              <div class="invalid-feedback">Please select a branch.</div>
+            </div>
+
+            <!-- Branch Info Card (shown after selection) -->
+            <div *ngIf="selectedBranch" class="branch-info-card mb-3 p-3 rounded">
+              <div class="row g-2 small">
+                <div class="col-6">
+                  <span class="text-muted">Vendor</span>
+                  <div class="fw-medium">{{ selectedBranch.vendor.vendorName }}</div>
+                </div>
+                <div class="col-6">
+                  <span class="text-muted">Location</span>
+                  <div class="fw-medium">{{ selectedBranch.address.city }}, {{ selectedBranch.address.state }}</div>
+                </div>
+                <div class="col-6">
+                  <span class="text-muted">Gold Price / gram</span>
+                  <div class="fw-medium text-warning">₹{{ selectedBranch.vendor.currentGoldPrice | number:'1.2-2' }}</div>
+                </div>
+                <div class="col-6">
+                  <span class="text-muted">Available Stock</span>
+                  <div class="fw-medium">{{ selectedBranch.quantity | number:'1.2-2' }} g</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quantity -->
+            <div class="mb-3">
+              <label class="form-label fw-medium">Quantity (grams)</label>
+              <input type="number"
+                     class="form-control"
+                     formControlName="quantity"
+                     placeholder="e.g. 2.5"
+                     step="0.01"
+                     min="0.01"
+                     [class.is-invalid]="buyGoldForm.get('quantity')?.invalid && buyGoldForm.get('quantity')?.touched">
+              <div class="invalid-feedback">
+                <span *ngIf="buyGoldForm.get('quantity')?.errors?.['required']">Quantity is required.</span>
+                <span *ngIf="buyGoldForm.get('quantity')?.errors?.['min']">Minimum quantity is 0.01 grams.</span>
+              </div>
+            </div>
+
+            <!-- Estimated Amount -->
+            <div *ngIf="estimatedAmount !== null" class="estimated-amount mb-3 p-3 rounded text-center">
+              <div class="small text-muted mb-1">Estimated Total</div>
+              <div class="fs-5 fw-semibold text-success">₹{{ estimatedAmount | number:'1.2-2' }}</div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="mb-4">
+              <label class="form-label fw-medium">Payment Method</label>
+              <select class="form-select"
+                      formControlName="paymentMethod"
+                      [class.is-invalid]="buyGoldForm.get('paymentMethod')?.invalid && buyGoldForm.get('paymentMethod')?.touched">
+                <option [ngValue]="null" disabled>Select payment method</option>
+                <option *ngFor="let method of paymentMethods" [value]="method">
+                  {{ formatPaymentMethod(method) }}
+                </option>
+              </select>
+              <div class="invalid-feedback">Please select a payment method.</div>
+            </div>
+
+            <!-- Submit -->
+            <div class="d-grid">
+              <button type="submit"
+                      class="btn btn-warning fw-semibold py-2"
+                      [disabled]="isSubmitting">
+                <span *ngIf="isSubmitting"
+                      class="spinner-border spinner-border-sm me-2"
+                      role="status"
+                      aria-hidden="true"></span>
+                {{ isSubmitting ? 'Processing...' : 'Buy Gold' }}
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transaction Receipt (shown after success) -->
+    <div class="col-lg-5" *ngIf="lastTransaction">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h6 class="card-title text-muted mb-4">Transaction Receipt</h6>
+
+          <div class="receipt-row">
+            <span class="text-muted">Transaction ID</span>
+            <span class="fw-medium">#{{ lastTransaction.transactionId }}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="text-muted">Status</span>
+            <span class="badge"
+                  [ngClass]="lastTransaction.transactionStatus === 'SUCCESS' ? 'bg-success' : 'bg-danger'">
+              {{ lastTransaction.transactionStatus }}
+            </span>
+          </div>
+          <div class="receipt-row">
+            <span class="text-muted">Type</span>
+            <span class="fw-medium">{{ lastTransaction.transactionType }}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="text-muted">Quantity</span>
+            <span class="fw-medium">{{ lastTransaction.quantity | number:'1.2-2' }} g</span>
+          </div>
+          <div class="receipt-row">
+            <span class="text-muted">Amount Paid</span>
+            <span class="fw-medium text-success">₹{{ lastTransaction.amount | number:'1.2-2' }}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="text-muted">Vendor</span>
+            <span class="fw-medium">{{ lastTransaction.vendorName }}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="text-muted">Branch City</span>
+            <span class="fw-medium">{{ lastTransaction.branchCity }}</span>
+          </div>
+          <div class="receipt-row border-0">
+            <span class="text-muted">Date</span>
+            <span class="fw-medium">{{ lastTransaction.createdAt | date:'medium' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

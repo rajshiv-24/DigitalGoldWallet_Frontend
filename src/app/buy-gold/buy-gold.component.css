@@ -1,0 +1,18 @@
+.branch-info-card {
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.estimated-amount {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+}
