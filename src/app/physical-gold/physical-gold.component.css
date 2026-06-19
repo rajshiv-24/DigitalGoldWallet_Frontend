@@ -1,0 +1,37 @@
+/* Branch info card — blue tint, distinct from buy (amber) and sell (red) */
+.branch-info-card {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+/* Address info card — slate tint, visually separate from branch card */
+.address-info-card {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+/* Receipt rows — identical structure to Buy Gold and Sell Gold */
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+}
+
+.receipt-row.border-0 {
+  border-bottom: none;
+}
+
+/* Section label inside receipt — separates transaction fields from address fields */
+.receipt-section-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  padding: 12px 0 4px;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 2px;
+}

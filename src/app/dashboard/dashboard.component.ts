@@ -9,7 +9,7 @@ import {
   GoldHoldingTotal,
   TransactionHistoryResponse
 } from '../core/models/dashboard.models';
-
+import { VendorBranch } from '../core/models/vendor-branch.model';
 @Component({
   selector:    'app-dashboard',
   standalone:  true,
@@ -31,7 +31,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // ── Mock: gold rate remains hardcoded until
   //         a price endpoint exists on the backend ──────────
-  readonly currentRatePerGram = 6748.50;
+  currentRatePerGram = 0;
 
   private readonly destroy$ = new Subject<void>();
 
@@ -58,16 +58,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.errorMessage = null;
 
     forkJoin({
-      user:         this.dashboardService.getUserById(userId),
-      goldHolding:  this.dashboardService.getGoldHoldingTotal(userId),
-      transactions: this.dashboardService.getTransactionHistory(userId)
-    })
+  user: this.dashboardService.getUserById(userId),
+  goldHolding: this.dashboardService.getGoldHoldingTotal(userId),
+  transactions: this.dashboardService.getTransactionHistory(userId),
+  branches: this.dashboardService.getAllBranches()
+})
     .pipe(takeUntil(this.destroy$))
     .subscribe({
-      next: ({ user, goldHolding, transactions }) => {
+      next: ({ user, goldHolding, transactions, branches }) => {
         this.userProfile  = user;
         this.goldHolding  = goldHolding;
         this.transactions = transactions;
+        if (branches.length > 0) {
+  this.currentRatePerGram =
+    branches.reduce(
+      (sum, branch) => sum + branch.vendor.currentGoldPrice,
+      0
+    ) / branches.length;
+}
         this.isLoading    = false;
       },
       error: (err) => {

@@ -39,8 +39,8 @@
                       [class.is-invalid]="buyGoldForm.get('branchId')?.invalid && buyGoldForm.get('branchId')?.touched">
                 <option [ngValue]="null" disabled>Select a branch</option>
                 <option *ngFor="let branch of branches" [value]="branch.branchId">
-                  {{ branch.vendor.vendorName }} — {{ branch.address.city }}
-                </option>
+  #{{ branch.branchId }} - {{ branch.vendor.vendorName }} — {{ branch.address.city }}
+</option>
               </select>
               <div class="invalid-feedback">Please select a branch.</div>
             </div>

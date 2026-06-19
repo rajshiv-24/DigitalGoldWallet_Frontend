@@ -45,18 +45,22 @@ export class SellGoldComponent implements OnInit {
   }
 
   private loadBranches(): void {
-    this.isLoadingBranches = true;
-    this.goldService.getAllBranches().subscribe({
-      next: (data) => {
-        this.branches = data;
-        this.isLoadingBranches = false;
-      },
-      error: () => {
-        this.errorMessage = 'Failed to load branches. Please try again.';
-        this.isLoadingBranches = false;
-      }
-    });
-  }
+  this.isLoadingBranches = true;
+
+  this.goldService.getAllBranches().subscribe({
+    next: (data) => {
+      this.branches = [...data].sort(
+        (a, b) => a.branchId - b.branchId
+      );
+
+      this.isLoadingBranches = false;
+    },
+    error: () => {
+      this.errorMessage = 'Failed to load branches. Please try again.';
+      this.isLoadingBranches = false;
+    }
+  });
+}
 
   get selectedBranch(): VendorBranch | null {
     const id = Number(this.sellGoldForm.get('branchId')?.value);

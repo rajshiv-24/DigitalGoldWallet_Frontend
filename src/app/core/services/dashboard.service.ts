@@ -7,7 +7,7 @@ import {
   GoldHoldingTotal,
   TransactionHistoryResponse
 } from '../models/dashboard.models';
-
+import { VendorBranch } from '../models/vendor-branch.model';
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
 
@@ -27,6 +27,12 @@ export class DashboardService {
     return this.http.get<GoldHoldingTotal>(
       `${this.baseUrl}/api/gold/holdings/by-user/${userId}/total`
     );
+  }
+
+  getAllBranches() {
+  return this.http.get<VendorBranch[]>(
+    `${environment.apiBaseUrl}/api/branches`
+  );
   }
 
   // ── GET /api/gold/history/by-user/{userId} ────────────────

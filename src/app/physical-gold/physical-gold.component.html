@@ -1,0 +1,231 @@
+<div class="container py-4">
+
+  <!-- Header -->
+  <div class="d-flex align-items-center mb-4">
+    <button class="btn btn-outline-secondary btn-sm me-3" (click)="goToDashboard()">
+      ← Back
+    </button>
+    <h4 class="mb-0 fw-semibold">Convert to Physical Gold</h4>
+  </div>
+
+  <!-- Alerts -->
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible" role="alert">
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible" role="alert">
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Form Panel -->
+    <div class="col-lg-7">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          <h6 class="card-title text-muted mb-4">Conversion Details</h6>
+
+          <form [formGroup]="convertForm" (ngSubmit)="onSubmit()">
+
+            <!-- Branch Dropdown -->
+            <div class="mb-3">
+              <label class="form-label fw-medium">Select Branch</label>
+              <div *ngIf="isLoadingBranches" class="text-muted small">
+                Loading branches...
+              </div>
+              <select
+                *ngIf="!isLoadingBranches"
+                class="form-select"
+                formControlName="branchId"
+                [class.is-invalid]="convertForm.get('branchId')?.invalid &&
+                                    convertForm.get('branchId')?.touched">
+                <option [ngValue]="null" disabled>Select a branch</option>
+                <option *ngFor="let branch of branches" [value]="branch.branchId">
+                     #{{ branch.branchId }} - {{ branch.vendor.vendorName }} — {{ branch.address.city }}
+                </option>
+              </select>
+              <div class="invalid-feedback">Please select a branch.</div>
+            </div>
+
+            <!-- Branch Info Card -->
+            <div *ngIf="selectedBranch" class="branch-info-card mb-3 p-3 rounded">
+              <div class="row g-2 small">
+                <div class="col-6">
+                  <span class="text-muted">Vendor</span>
+                  <div class="fw-medium">{{ selectedBranch.vendor.vendorName }}</div>
+                </div>
+                <div class="col-6">
+                  <span class="text-muted">Location</span>
+                  <div class="fw-medium">
+                    {{ selectedBranch.address.city }}, {{ selectedBranch.address.state }}
+                  </div>
+                </div>
+                <div class="col-6">
+                  <span class="text-muted">Gold Price / gram</span>
+                  <div class="fw-medium text-primary">
+                    ₹{{ selectedBranch.vendor.currentGoldPrice | number:'1.2-2' }}
+                  </div>
+                </div>
+                <div class="col-6">
+                  <span class="text-muted">Available Stock</span>
+                  <div class="fw-medium">
+                    {{ selectedBranch.quantity | number:'1.2-2' }} g
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Delivery Address Dropdown -->
+            <div class="mb-3">
+              <label class="form-label fw-medium">Select Delivery Address</label>
+              <div *ngIf="isLoadingAddresses" class="text-muted small">
+                Loading addresses...
+              </div>
+              <select
+                *ngIf="!isLoadingAddresses"
+                class="form-select"
+                formControlName="deliveryAddressId"
+                [class.is-invalid]="convertForm.get('deliveryAddressId')?.invalid &&
+                                    convertForm.get('deliveryAddressId')?.touched">
+                <option [ngValue]="null" disabled>Select a delivery address</option>
+                <option *ngFor="let address of addresses" [value]="address.addressId">
+                  {{ address.street }}, {{ address.city }}, {{ address.state }}
+                </option>
+              </select>
+              <div class="invalid-feedback">Please select a delivery address.</div>
+            </div>
+
+            <!-- Delivery Address Info Card -->
+            <div *ngIf="selectedAddress" class="address-info-card mb-3 p-3 rounded">
+              <div class="row g-2 small">
+                <div class="col-12">
+                  <span class="text-muted">Street</span>
+                  <div class="fw-medium">{{ selectedAddress.street }}</div>
+                </div>
+                <div class="col-6">
+                  <span class="text-muted">City</span>
+                  <div class="fw-medium">{{ selectedAddress.city }}</div>
+                </div>
+                <div class="col-6">
+                  <span class="text-muted">State</span>
+                  <div class="fw-medium">{{ selectedAddress.state }}</div>
+                </div>
+                <div class="col-6">
+                  <span class="text-muted">Postal Code</span>
+                  <div class="fw-medium">{{ selectedAddress.postalCode }}</div>
+                </div>
+                <div class="col-6">
+                  <span class="text-muted">Country</span>
+                  <div class="fw-medium">{{ selectedAddress.country }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quantity -->
+            <div class="mb-4">
+              <label class="form-label fw-medium">Quantity (grams)</label>
+              <input
+                type="number"
+                class="form-control"
+                formControlName="quantity"
+                placeholder="e.g. 5.0"
+                step="0.01"
+                min="0.01"
+                [class.is-invalid]="convertForm.get('quantity')?.invalid &&
+                                    convertForm.get('quantity')?.touched">
+              <div class="invalid-feedback">
+                <span *ngIf="convertForm.get('quantity')?.errors?.['required']">
+                  Quantity is required.
+                </span>
+                <span *ngIf="convertForm.get('quantity')?.errors?.['min']">
+                  Minimum quantity is 0.01 grams.
+                </span>
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="d-grid">
+              <button
+                type="submit"
+                class="btn btn-primary fw-semibold py-2"
+                [disabled]="isSubmitting || isLoadingDropdowns">
+                <span
+                  *ngIf="isSubmitting"
+                  class="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true">
+                </span>
+                {{ isSubmitting ? 'Processing...' : 'Convert to Physical Gold' }}
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receipt Panel -->
+    <div class="col-lg-5" *ngIf="lastTransaction">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h6 class="card-title text-muted mb-4">Transaction Receipt</h6>
+
+          <div class="receipt-row">
+            <span class="text-muted">Transaction ID</span>
+            <span class="fw-medium">#{{ lastTransaction.transactionId }}</span>
+          </div>
+
+          <div class="receipt-row">
+            <span class="text-muted">Vendor</span>
+            <span class="fw-medium">{{ lastTransaction.vendorName }}</span>
+          </div>
+
+          <div class="receipt-row">
+            <span class="text-muted">Quantity</span>
+            <span class="fw-medium">
+              {{ lastTransaction.quantity | number:'1.2-2' }} g
+            </span>
+          </div>
+
+          <div class="receipt-section-label">Delivery Address</div>
+
+          <div class="receipt-row">
+            <span class="text-muted">Street</span>
+            <span class="fw-medium">{{ lastTransaction.deliveryStreet }}</span>
+          </div>
+
+          <div class="receipt-row">
+            <span class="text-muted">City</span>
+            <span class="fw-medium">{{ lastTransaction.deliveryCity }}</span>
+          </div>
+
+          <div class="receipt-row">
+            <span class="text-muted">State</span>
+            <span class="fw-medium">{{ lastTransaction.deliveryState }}</span>
+          </div>
+
+          <div class="receipt-row">
+            <span class="text-muted">Postal Code</span>
+            <span class="fw-medium">{{ lastTransaction.deliveryPostalCode }}</span>
+          </div>
+
+          <div class="receipt-row">
+            <span class="text-muted">Country</span>
+            <span class="fw-medium">{{ lastTransaction.deliveryCountry }}</span>
+          </div>
+
+          <div class="receipt-row border-0">
+            <span class="text-muted">Date</span>
+            <span class="fw-medium">
+              {{ lastTransaction.createdAt | date:'dd MMM yyyy, h:mm a' }}
+            </span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

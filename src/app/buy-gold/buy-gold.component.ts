@@ -58,9 +58,13 @@ export class BuyGoldComponent implements OnInit {
     this.isLoadingBranches = true;
     this.goldService.getAllBranches().subscribe({
       next: (data) => {
-        this.branches = data;
-        this.isLoadingBranches = false;
-      },
+  console.log(data);
+  this.branches = [...data].sort(
+    (a, b) => a.branchId - b.branchId
+  );
+  console.log(this.branches);
+  this.isLoadingBranches = false;
+},
       error: () => {
         this.errorMessage = 'Failed to load branches. Please try again.';
         this.isLoadingBranches = false;

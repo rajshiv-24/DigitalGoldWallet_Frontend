@@ -62,6 +62,13 @@ export const routes: Routes = [
     import('./transactions/transactions.component')
       .then(m => m.TransactionsComponent)
 },
+{
+  path: 'physical-gold',
+  canActivate: [authGuard],
+  loadComponent: () =>
+    import('./physical-gold/physical-gold.component')
+      .then(m => m.PhysicalGoldComponent)
+},
   // ── Wildcard ──────────────────────────────────────────────
   {
     path: '**',

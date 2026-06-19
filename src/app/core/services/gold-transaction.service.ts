@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { VendorBranch } from '../models/vendor-branch.model';
 import { BuyGoldRequest, SellGoldRequest, TransactionHistoryResponse } from '../models/transaction-history.model';
-
+import { ConvertToPhysicalRequest, PhysicalGoldTransactionResponse } from '../models/physical-gold.model';
 @Injectable({ providedIn: 'root' })
 export class GoldTransactionService {
   private readonly goldUrl = 'http://localhost:8080/api/gold';
@@ -23,10 +23,30 @@ export class GoldTransactionService {
     return this.http.get<TransactionHistoryResponse[]>(`${this.goldUrl}/history/by-user/${userId}`);
   }
 
+  convertToPhysical(
+  request: ConvertToPhysicalRequest
+): Observable<PhysicalGoldTransactionResponse> {
+  return this.http.post<PhysicalGoldTransactionResponse>(
+    `${this.goldUrl}/convert-to-physical`,
+    request
+  );
+}
+
+getPhysicalTransactionsByUser(
+  userId: number
+): Observable<PhysicalGoldTransactionResponse[]> {
+  return this.http.get<PhysicalGoldTransactionResponse[]>(
+    `${this.goldUrl}/physical/by-user/${userId}`
+  );
+}
+
+
   sellGold(request: SellGoldRequest): Observable<TransactionHistoryResponse> {
   return this.http.post<TransactionHistoryResponse>(
     `${this.goldUrl}/sell`,
     request
   );
+
+  
 }
 }
